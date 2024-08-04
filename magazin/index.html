@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Titlul Paginii Tale</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Încarcă fișierul CSS extern -->
+    <style>
+        /* Stilizare pentru întreaga pagină */
+
+        /* Resetare stiluri implicite */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background-color: #f8f9fa; /* Fundal gri deschis */
+            color: #333; /* Culoare text principal */
+        }
+
+        /* Stilizare pentru header */
+        header {
+            background-color: #343a40; /* Fundal navbar */
+            padding: 10px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            max-width: 200px;
+        }
+
+        nav {
+            text-align: center;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav ul li {
+            display: inline;
+            margin: 0 10px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: #fff; /* Text alb */
+            padding: 10px 15px;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+
+        nav ul li a:hover {
+            background-color: #555; /* Fond gri închis la hover */
+            border-radius: 5px;
+        }
+
+        /* Stilizare pentru secțiunea principală */
+        .main-section {
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .main-section h1 {
+            font-size: 36px;
+            margin-bottom: 30px;
+        }
+
+        .main-section p {
+            font-size: 18px;
+            margin-bottom: 40px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff; /* Albastru vibrant */
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #0056b3; /* Albastru mai închis la hover */
+        }
+
+        /* Stilizare pentru footer */
+        footer {
+            background-color: #343a40; /* Fundal footer */
+            color: #fff; /* Text alb */
+            padding: 50px 0;
+            text-align: center;
+        }
+
+        .footer-links ul {
+            list-style-type: none;
+            margin-bottom: 20px;
+        }
+
+        .footer-links ul li {
+            display: inline;
+            margin: 0 10px;
+        }
+
+        .footer-links ul li a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links ul li a:hover {
+            color: #ccc; /* Gri mai deschis la hover */
+        }
+
+        .social-media a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 24px;
+            transition: color 0.3s ease;
+        }
+
+        .social-media a:hover {
+            color: #ccc; /* Gri mai deschis la hover */
+        }
+
+        .newsletter form {
+            margin-top: 20px;
+        }
+
+        .newsletter input[type="email"],
+        .newsletter button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .newsletter button {
+            background-color: #28a745; /* Verde închis pentru buton */
+            color: #fff;
+            transition: background-color 0.3s ease;
+        }
+
+        .newsletter button:hover {
+            background-color: #218838; /* Verde mai închis la hover */
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <div class="logo">
+            <img src="logo.png" alt="Logo-ul site-ului">
+        </div>
+        <nav>
+            <ul>
+                <li><a href="">Acasă</a></li>
+                <li><a href="#">Restaurante</a></li>
+                <li><a href="#">Oferte</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </nav>
+        <div class="search-bar">
+            <input type="text" placeholder="Căutare...">
+            <button type="submit">Caută</button>
+        </div>
+        <div class="user-actions">
+            <a href="#" class="btn">Login</a>
+            <a href="#" class="btn">Înregistrare</a>
+        </div>
+    </div>
+</header>
+
+<section class="main-section">
+    <div class="container">
+        <h1>Bun venit la Numele Site-ului</h1>
+        <p>Comandă mâncare delicioasă și primește-o la ușă!</p>
+        <a href="restaurante.html" class="btn">Comandă Acum</a>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <ul>
+                <li><a href="#">Despre Noi</a></li>
+                <li><a href="#">Termeni și Condiții</a></li>
+                <li><a href="#">Politica de Confidențialitate</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </div>
+        <div class="social-media">
+            <a href="#" class="social-link">Facebook</a>
+            <a href="#" class="social-link">Twitter</a>
+            <a href="#" class="social-link">Instagram</a>
+        </div>
+        <div class="newsletter">
+            <form action="#">
+                <input type="email" placeholder="Adresa ta de email">
+                <button type="submit">Abonează-te</button>
+            </form>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant 1 - Checkout</title>
+    <style>
+        /* Stiluri CSS */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="tel"], input[type="email"], textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .order-summary {
+            margin-bottom: 20px;
+            background: #e9e9e9;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .cart-items div {
+            margin-bottom: 10px;
+        }
+        .thank-you-message {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="order-form-container">
+            <h1>Plasează Comanda</h1>
+            
+            <div class="order-summary">
+                <h2>Sumar Comandă</h2>
+                <div class="cart-items"></div>
+                <div class="cart-total">Total: <span id="cart-total-price">0</span> lei</div>
+            </div>
+
+            <form id="order-form">
+                <div class="form-group">
+                    <label for="first-name">Prenume:</label>
+                    <input type="text" id="first-name" name="first-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="last-name">Nume:</label>
+                    <input type="text" id="last-name" name="last-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Număr de Telefon:</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="address">Adresă de Livrare:</label>
+                    <textarea id="address" name="address" required></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit">Plasează Comanda</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="thank-you-message" style="display: none;">
+            <h2>Mulțumim pentru comanda dumneavoastră!</h2>
+            <p>Comanda dumneavoastră a fost plasată cu succes. Vă mulțumim că ați ales restaurantul nostru și vă așteptăm cu drag să reveniți!</p>
+        </div>
+    </div>
+
+    <script>
+        let cartItems = [];
+
+        function loadCartItems() {
+            const cartData = localStorage.getItem('cart');
+            if (cartData) {
+                try {
+                    cartItems = JSON.parse(cartData);
+                    if (!Array.isArray(cartItems)) {
+                        cartItems = Object.values(cartItems);
+                    }
+                } catch (e) {
+                    console.error("Eroare la parsarea datelor din coș:", e);
+                    cartItems = [];
+                }
+            }
+        }
+
+        function displayCartItems() {
+            const cartItemsContainer = document.querySelector('.cart-items');
+            cartItemsContainer.innerHTML = '';
+
+            let totalPrice = 0;
+
+            cartItems.forEach((item, index) => {
+                const cartItem = document.createElement('div');
+                cartItem.textContent = `${item.name} - ${parseFloat(item.price).toFixed(2)} lei`;
+
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Elimină';
+                removeButton.addEventListener('click', () => {
+                    removeFromCart(index);
+                });
+
+                cartItem.appendChild(removeButton);
+                cartItemsContainer.appendChild(cartItem);
+
+                totalPrice += parseFloat(item.price);
+            });
+
+            document.getElementById('cart-total-price').textContent = totalPrice.toFixed(2);
+        }
+
+        function removeFromCart(index) {
+            cartItems.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(cartItems));
+            displayCartItems();
+        }
+
+        loadCartItems();
+        displayCartItems();
+
+        const orderForm = document.getElementById('order-form');
+        const orderFormContainer = document.getElementById('order-form-container');
+        const thankYouMessage = document.getElementById('thank-you-message');
+
+        orderForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            if (cartItems.length === 0) {
+                alert('Coșul dumneavoastră este gol. Vă rugăm să adăugați produse înainte de a plasa comanda.');
+                return;
+            }
+
+            const orderData = {
+                firstName: document.getElementById('first-name').value,
+                lastName: document.getElementById('last-name').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                address: document.getElementById('address').value,
+                orderNumber: 'CMD' + Date.now(),
+                products: cartItems.map(item => `${item.name} - ${parseFloat(item.price).toFixed(2)} lei`).join(', '),
+                totalPrice: cartItems.reduce((total, item) => total + parseFloat(item.price), 0).toFixed(2)
+            };
+
+            localStorage.setItem('currentOrder', JSON.stringify(orderData));
+
+            orderFormContainer.style.display = 'none';
+            thankYouMessage.style.display = 'block';
+
+            localStorage.removeItem('cart');
+            cartItems = [];
+
+            // Redirecționare către pagina de confirmare după 5 secunde
+            setTimeout(function() {
+                window.location.href = "confirmare.comanda/confirmare.html"; // URL-ul paginii de confirmare
+            }, 5000);
+        });
+    </script>
+</body>
+</html>

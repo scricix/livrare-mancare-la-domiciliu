@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+/**
+ * The CSS styles defined in this section are used to enhance the appearance and layout of the menu and cart components in the web application.
+ *
+ * The `.menu` class is used to create a grid-based layout for the menu items, with each item displayed in a card-like format. The styles include:
+ * - Defining the grid layout with responsive columns
+ * - Adding spacing and padding between the menu items
+ * - Applying a border, border-radius, and box-shadow to the menu items
+ * - Implementing a hover effect to enhance the appearance of the menu items
+ *
+ * The `.cart` class is used to style the cart icon, which is positioned in the top-right corner of the page. The styles include:
+ * - Positioning the cart icon using `position: fixed`
+ * - Applying a circular background color and centering the icon
+ * - Adding a box-shadow and hover effect to the cart icon
+ *
+ * The `.cart-items` class is used to style the cart items container, which is also positioned in the top-right corner of the page. The styles include:
+ * - Positioning the cart items container using `position: fixed`
+ * - Applying a background color, border, border-radius, and box-shadow to the container
+ * - Implementing a show/hide functionality for the cart items container
+ * - Styling the individual cart items, including the product image, name, and remove button
+ * - Styling the total cost and the "Place Order" button within the cart items container
+ */
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meniuri cu Adăugare în Coș și Coș de Cumpărături</title>
+    <style>
+        /* Stiluri îmbunătățite pentru meniuri */
+        .menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .menu-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .menu-item:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-item img {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .menu-item button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .menu-item button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Stiluri îmbunătățite pentru coșul de cumpărături */
+        .cart {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            z-index: 1000;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+        }
+
+        .cart:hover {
+            background-color: #0056b3;
+        }
+
+        .cart-items {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            width: 350px;
+            background-color: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            padding: 20px;
+            display: none;
+            z-index: 999;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .cart-items.open {
+            display: block;
+        }
+
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .cart-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            margin-right: 15px;
+            border-radius: 4px;
+        }
+
+        .cart-item button {
+            margin-left: auto;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #dc3545;
+            font-size: 1.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .cart-item button:hover {
+            color: #a71d2a;
+        }
+
+        .total {
+            margin-top: 20px;
+            text-align: right;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .place-order {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .place-order button {
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .place-order button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="menu" id="menu-container">
+        <!-- Meniurile vor fi generate dinamic din datele JSON -->
+    </div>
+
+    <div class="cart" onclick="toggleCosul()">
+        🛒
+        <span id="cart-count">0</span>
+    </div>
+    <div class="cart-items" id="cart-items">
+        <!-- Aici vor fi afișate produsele din coș -->
+        <div class="total" id="cart-total"></div>
+        <div class="place-order">
+            <button onclick="plaseazaComanda()">Plasează Comanda</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let cosCumparaturi = [];
+    let produse = [];
+
+    fetch('produse.json')
+        .then(response => response.json())
+        .then(data => {
+            produse = data;
+            afiseazaMeniu();
+            afiseazaCosul();
+        })
+        .catch(error => console.error('Eroare la încărcarea produselor:', error));
+
+    function afiseazaMeniu() {
+        const menuDiv = document.getElementById('menu-container');
+        menuDiv.innerHTML = '';
+
+        produse.forEach(produs => {
+            const menuItemDiv = document.createElement('div');
+            menuItemDiv.classList.add('menu-item');
+            menuItemDiv.innerHTML = `
+                <img src="${produs.imagine}" alt="${produs.nume}">
+                <div>${produs.nume}</div>
+                <div>${produs.pret} lei</div>
+                <button onclick="adaugaInCos('${produs.nume}')">Adaugă în Coș</button>
+            `;
+            menuDiv.appendChild(menuItemDiv);
+        });
+    }
+
+    function adaugaInCos(numeProdus) {
+        const produs = produse.find(p => p.nume === numeProdus);
+        if (produs) {
+            cosCumparaturi.push(produs);
+            afiseazaCosul();
+        }
+    }
+
+    function stergeProdus(numeProdus) {
+        const index = cosCumparaturi.findIndex(produs => produs.nume === numeProdus);
+
+        if (index !== -1) {
+            cosCumparaturi.splice(index, 1);
+            afiseazaCosul();
+        }
+    }
+
+    function afiseazaCosul() {
+        let cartItemsDiv = document.getElementById('cart-items');
+        let total = 0;
+
+        cartItemsDiv.innerHTML = '';
+
+        if (cosCumparaturi.length === 0) {
+            cartItemsDiv.innerHTML = '<p>Coșul este gol</p>';
+        } else {
+            cosCumparaturi.forEach(produs => {
+                total += produs.pret;
+                let itemDiv = document.createElement('div');
+                itemDiv.classList.add('cart-item');
+                itemDiv.innerHTML = `
+                    <img src="${produs.imagine}" alt="${produs.nume}">
+                    <span>${produs.nume}</span>
+                    <span>${produs.pret} lei</span>
+                    <button onclick="stergeProdus('${produs.nume}')">×</button>
+                `;
+                cartItemsDiv.appendChild(itemDiv);
+            });
+
+            let totalDiv = document.createElement('div');
+            totalDiv.classList.add('total');
+            totalDiv.innerHTML = `Total: <span>${total} lei</span>`;
+            cartItemsDiv.appendChild(totalDiv);
+        }
+
+        document.getElementById('cart-count').innerText = cosCumparaturi.length;
+    }
+
+    function plaseazaComanda() {
+        alert('Comanda a fost plasată!');
+        cosCumparaturi = [];
+        afiseazaCosul();
+    }
+
+    function toggleCosul() {
+        let cartItemsDiv = document.getElementById('cart-items');
+        cartItemsDiv.classList.toggle('open');
+    }
+</script>
+
+</body>
+</html>

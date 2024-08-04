@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panou de Control Livratori</title>
+    <!-- Adăugați aici stilurile CSS necesare -->
+</head>
+<body>
+    <h1>Panou de Control Livratori</h1>
+    <div id="orderInfo">
+        <h2>Detalii Comandă</h2>
+        <p>Număr Comandă: <span id="orderNumber"></span></p>
+        <p>Nume Client: <span id="clientName"></span></p>
+        <p>Telefon: <span id="clientPhone"></span></p>
+        <p>Email: <span id="clientEmail"></span></p>
+        <p>Adresă Livrare: <span id="deliveryAddress"></span></p>
+        <p>Produse: <span id="products"></span></p>
+        <p>Preț Total: <span id="totalPrice"></span></p>
+    </div>
+
+    <!-- Adăugați aici alte elemente necesare pentru panoul de control -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function displayOrderData(data) {
+                document.getElementById('orderNumber').textContent = data.orderNumber;
+                document.getElementById('clientName').textContent = `${data.firstName} ${data.lastName}`;
+                document.getElementById('clientPhone').textContent = data.phone;
+                document.getElementById('clientEmail').textContent = data.email;
+                document.getElementById('deliveryAddress').textContent = data.address;
+                document.getElementById('products').textContent = data.products;
+                document.getElementById('totalPrice').textContent = data.totalPrice;
+            }
+
+            function checkForNewOrder() {
+                const newOrderData = localStorage.getItem('newOrder');
+                if (newOrderData) {
+                    const orderData = JSON.parse(newOrderData);
+                    displayOrderData(orderData);
+                    localStorage.removeItem('newOrder'); // Ștergem datele după afișare
+                    playNewOrderSound(); // Adăugați această funcție dacă doriți sunet la primirea comenzii
+                }
+            }
+
+            function playNewOrderSound() {
+                // Implementați logica pentru redarea sunetului aici
+                console.log('Sunet nou comandă');
+            }
+
+            // Verificăm imediat dacă există o comandă nouă
+            checkForNewOrder();
+
+            // Continuăm să verificăm periodic pentru comenzi noi
+            setInterval(checkForNewOrder, 5000); // Verifică la fiecare 5 secunde
+        });
+    </script>
+</body>
+</html>

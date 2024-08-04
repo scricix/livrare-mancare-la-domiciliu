@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vizualizare Comandă Salvată</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Informații Comandă Salvată</h1>
+        <div id="savedOrderInfo"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedData = sessionStorage.getItem('completedOrder');
+            const savedOrderInfo = document.getElementById('savedOrderInfo');
+            
+            if (savedData) {
+                const orderInfo = JSON.parse(savedData);
+                let html = '';
+                for (const [key, value] of Object.entries(orderInfo)) {
+                    html += `<p><strong>${key}:</strong> ${value}</p>`;
+                }
+                savedOrderInfo.innerHTML = html;
+            } else {
+                savedOrderInfo.innerHTML = '<p>Nu există informații salvate despre comandă.</p>';
+            }
+        });
+    </script>
+</body>
+</html>

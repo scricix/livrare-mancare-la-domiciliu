@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interfață Livrator</title>
+    <script src="index.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .panel {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .order-info {
+            background-color: #e9e9e9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .order-info p {
+            margin: 5px 0;
+        }
+        .button-group {
+            display: grid;
+            gap: 10px;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.clicked {
+            background-color: #ff0000;
+            cursor: not-allowed;
+        }
+        #acceptOrder {
+            margin-top: 10px;
+        }
+        #sendInfoButton {
+            background-color: #ff0000;
+        }
+        #sendInfoButton.active {
+            background-color: #4CAF50;
+            cursor: pointer;
+        }
+        .info-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        #deliveryStatusButton {
+            background-color: #ff0000;
+        }
+        #deliveryStatusButton.free {
+            background-color: #4CAF50;
+        }
+        #virtualReceiptButton {
+            background-color: #3498db;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        #notificationArea {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h1>Gestionare Comandă</h1>
+        <div id="order-info" class="order-info">
+            <h2>Informații Comandă</h2>
+            <p><strong>Număr Comandă:</strong> <span id="orderNumber"></span></p>
+            <p><strong>Nume Client:</strong> <span id="clientName"></span></p>
+            <p><strong>Telefon:</strong> <span id="clientPhone"></span></p>
+            <p><strong>Email:</strong> <span id="clientEmail"></span></p>
+            <p><strong>Adresă Livrare:</strong> <span id="deliveryAddress"></span></p>
+            <p><strong>Produse:</strong> <span id="products"></span></p>
+            <p><strong>Total:</strong> <span id="totalPrice"></span> lei</p>
+            <button id="acceptOrder">Acceptă Comanda</button>
+            <div class="info-buttons">
+                <button id="sendInfoButton" disabled>Trimite Informații</button>
+                <button id="deliveryStatusButton" disabled>Livrator Ocupat</button>
+                <button id="virtualReceiptButton" disabled>Eliberează Bon Virtual</button>
+            </div>
+        </div>
+        <div class="button-group">
+            <button id="pickupProduct">Produs Preluat</button>
+            <button id="inTransit">În Tranzit</button>
+            <button id="delivered">Livrat</button>
+            <button id="cancelDelivery">Livrare Anulată</button>
+            <button id="toggleSavedInfo" class="action-button">Vizualizează istoric comenzi</button>
+        </div>
+        <div id="savedOrderInfo" style="display: none; margin-top: 20px; padding: 10px; background-color: #e9e9e9; border-radius: 5px;">
+            <h2>Informații Comandă Salvată</h2>
+            <div id="savedOrderDetails"></div>
+        </div>
+    </div>
+
+    <!-- Modal pentru eliberarea bonului virtual -->
+    <div id="receiptModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Eliberare Bon Virtual</h2>
+            <p>Alegeți metoda de trimitere a bonului:</p>
+            <button id="sendSMS">Trimite prin SMS</button>
+            <button id="sendWhatsApp">Trimite prin WhatsApp</button>
+            <button id="sendEmail">Trimite prin Email</button>
+        </div>
+    </div>
+
+    <div id="notificationArea">
+        <p>Comandă nouă primită!</p>
+        <button id="viewNewOrder">Vizualizează Comanda</button>
+    </div>
+
+    <audio id="newOrderSound" src="sunetnotificare.mp3"></audio>
+   
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const pickupProductButton = document.getElementById('pickupProduct');
+            const inTransitButton = document.getElementById('inTransit');
+            const deliveredButton = document.getElementById('delivered');
+            const cancelDeliveryButton = document.getElementById('cancelDelivery');
+            const orderNumberElement = document.getElementById('orderNumber');
+            const clientNameElement = document.getElementById('clientName');
+            const clientPhoneElement = document.getElementById('clientPhone');
+            const clientEmailElement = document.getElementById('clientEmail');
+            const deliveryAddressElement = document.getElementById('deliveryAddress');
+            const productsElement = document.getElementById('products');
+            const totalPriceElement = document.getElementById('totalPrice');
+            const orderStatusElement = document.getElementById('orderStatus');
+            const acceptOrderButton = document.getElementById('acceptOrder');
+            const sendInfoButton = document.getElementById('sendInfoButton');
+            const toggleSavedInfoButton = document.getElementById('toggleSavedInfo');
+            const savedOrderDetailsElement = document.getElementById('savedOrderDetails');
+            const savedOrderInfoElement = document.getElementById('savedOrderInfo');
+            const deliveryStatusButton = document.getElementById('deliveryStatusButton');
+            const virtualReceiptButton = document.getElementById('virtualReceiptButton');
+            const receiptModal = document.getElementById('receiptModal');
+            const closeModalButton = document.getElementsByClassName('close')[0];
+            const sendSMSButton = document.getElementById('sendSMS');
+            const sendWhatsAppButton = document.getElementById('sendWhatsApp');
+            const sendEmailButton = document.getElementById('sendEmail');
+            const notificationArea = document.getElementById('notificationArea');
+            const viewNewOrderButton = document.getElementById('viewNewOrder');
+            const newOrderSound = document.getElementById('newOrderSound');
+
+            function loadOrderDetails() {
+                const orderData = JSON.parse(localStorage.getItem('currentOrder'));
+
+                if (orderData) {
+                    orderNumberElement.textContent = orderData.orderNumber;
+                    clientNameElement.textContent = `${orderData.firstName} ${orderData.lastName}`;
+                    clientPhoneElement.textContent = orderData.phone;
+                    clientEmailElement.textContent = orderData.email;
+                    deliveryAddressElement.textContent = orderData.address;
+                    productsElement.textContent = orderData.products;
+                    totalPriceElement.textContent = `${orderData.totalPrice} lei`;
+                }
+            }
+
+            loadOrderDetails();
+
+            function saveOrderStatus(status) {
+                const orderData = JSON.parse(localStorage.getItem('currentOrder'));
+                if (orderData) {
+                    orderData.status = status;
+                    localStorage.setItem('currentOrder', JSON.stringify(orderData));
+                }
+            }
+
+            pickupProductButton.addEventListener('click', () => saveOrderStatus('Produs Preluat'));
+            inTransitButton.addEventListener('click', () => saveOrderStatus('În Tranzit'));
+            deliveredButton.addEventListener('click', () => saveOrderStatus('Livrat'));
+            cancelDeliveryButton.addEventListener('click', () => saveOrderStatus('Livrare Anulată'));
+
+            function saveOrderDetails() {
+                const orderDetails = {
+                    orderNumber: orderNumberElement.textContent,
+                    clientName: clientNameElement.textContent,
+                    clientPhone: clientPhoneElement.textContent,
+                    clientEmail: clientEmailElement.textContent,
+                    deliveryAddress: deliveryAddressElement.textContent,
+                    products: productsElement.textContent,
+                    totalPrice: totalPriceElement.textContent,
+                    status: 'În așteptare'
+                };
+
+                localStorage.setItem('currentOrder', JSON.stringify(orderDetails));
+            }
+
+            virtualReceiptButton.addEventListener('click', function() {
+                receiptModal.style.display = 'block';
+            });
+
+            closeModalButton.addEventListener('click', function() {
+                receiptModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', function(event) {
+                if (event.target == receiptModal) {
+                    receiptModal.style.display = 'none';
+                }
+            });
+
+            sendSMSButton.addEventListener('click', function() {
+                alert('Bon virtual trimis prin SMS.');
+                receiptModal.style.display = 'none';
+            });
+
+            sendWhatsAppButton.addEventListener('click', function() {
+                alert('Bon virtual trimis prin WhatsApp.');
+                receiptModal.style.display = 'none';
+            });
+
+            sendEmailButton.addEventListener('click', function() {
+                alert('Bon virtual trimis prin Email.');
+                receiptModal.style.display = 'none';
+            });
+
+            acceptOrderButton.addEventListener('click', function() {
+                saveOrderDetails();
+                sendInfoButton.disabled = false;
+                deliveryStatusButton.disabled = false;
+                virtualReceiptButton.disabled = false;
+                acceptOrderButton.classList.add('clicked');
+                acceptOrderButton.disabled = true;
+            });
+
+            toggleSavedInfoButton.addEventListener('click', function() {
+                if (savedOrderInfoElement.style.display === 'none') {
+                    const savedOrderData = JSON.parse(localStorage.getItem('currentOrder'));
+                    if (savedOrderData) {
+                        savedOrderDetailsElement.innerHTML = `
+                            <p><strong>Număr Comandă:</strong> ${savedOrderData.orderNumber}</p>
+                            <p><strong>Nume Client:</strong> ${savedOrderData.clientName}</p>
+                            <p><strong>Telefon:</strong> ${savedOrderData.clientPhone}</p>
+                            <p><strong>Email:</strong> ${savedOrderData.clientEmail}</p>
+                            <p><strong>Adresă Livrare:</strong> ${savedOrderData.deliveryAddress}</p>
+                            <p><strong>Produse:</strong> ${savedOrderData.products}</p>
+                            <p><strong>Total:</strong> ${savedOrderData.totalPrice} lei</p>
+                            <p><strong>Status:</strong> ${savedOrderData.status}</p>
+                        `;
+                    }
+                    savedOrderInfoElement.style.display = 'block';
+                } else {
+                    savedOrderInfoElement.style.display = 'none';
+                }
+            });
+
+            function showNotification() {
+                notificationArea.style.display = 'block';
+                newOrderSound.play();
+                setTimeout(() => {
+                    notificationArea.style.display = 'none';
+                }, 10000); // Notificarea dispare după 10 secunde
+            }
+
+            function simulateNewOrder() {
+                // Simulăm primirea unei comenzi noi la intervale aleatorii între 30 și 120 de secunde
+                const randomTime = Math.floor(Math.random() * (120000 - 30000 + 1)) + 30000;
+                setTimeout(() => {
+                    showNotification();
+                    simulateNewOrder(); // Programăm următoarea simulare
+                }, randomTime);
+            }
+
+            simulateNewOrder(); // Începem simularea
+
+            viewNewOrderButton.addEventListener('click', function() {
+                notificationArea.style.display = 'none';
+                // Aici puteți adăuga logica pentru a încărca detaliile noii comenzi
+                alert('Încărcare detalii comandă nouă...');
+                // Resetăm interfața pentru noua comandă
+                loadNewOrderDetails();
+                acceptOrderButton.classList.remove('clicked');
+                acceptOrderButton.disabled = false;
+                sendInfoButton.disabled = true;
+                deliveryStatusButton.disabled = true;
+                virtualReceiptButton.disabled = true;
+            });
+
+            function loadNewOrderDetails() {
+                // Simulăm încărcarea unor date aleatorii pentru noua comandă
+                const newOrderData = {
+                    orderNumber: Math.floor(Math.random() * 1000000),
+                    firstName: 'Client',
+                    lastName: 'Nou',
+                    phone: '0712345678',
+                    email: 'client.nou@example.com',
+                    address: 'Strada Exemplu, Nr. 123, Oraș',
+                    products: 'Produs A, Produs B',
+                    totalPrice: Math.floor(Math.random() * 500) + 50
+                };
+
+                orderNumberElement.textContent = newOrderData.orderNumber;
+                clientNameElement.textContent = `${newOrderData.firstName} ${newOrderData.lastName}`;
+                clientPhoneElement.textContent = newOrderData.phone;
+                clientEmailElement.textContent = newOrderData.email;
+                deliveryAddressElement.textContent = newOrderData.address;
+                productsElement.textContent = newOrderData.products;
+                totalPriceElement.textContent = `${newOrderData.totalPrice} lei`;
+
+                localStorage.setItem('currentOrder', JSON.stringify(newOrderData));
+            }
+        });
+    </script>
+</body>
+</html

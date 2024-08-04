@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant 1 - Meniu</title>
+   <link rel="stylesheet" href="css/restaurant1.css">
+   <script src="javascript/restaurant1.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Restaurant 1</h1>
+            <nav>
+                <ul>
+                    <li><a href="#">Acasă</a></li>
+                    <li><a href="#">Restaurante</a></li>
+                    <li><a href="#">Oferte</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="cart-icon" onclick="toggleCart()">&#128722;</div>
+        </div>
+    </header>
+
+    <section class="main-section">
+        <div class="container">
+            <div class="restaurant-menu">
+                <!-- Cartoane pentru meniu -->
+                <div class="menu-card">
+                    <img src="burger.jpg" alt="Burger">
+                    <div class="menu-info">
+                        <h2>Burger cu carne de vită</h2>
+                        <p>Chiflă, carne de vită, salată, roșii, castraveți, sos</p>
+                        <p class="price">Preț: 25 lei</p>
+                        <div class="options">
+                            <div class="option">
+                                <label for="sos-burger">Alege sos:</label>
+                                <select id="sos-burger">
+                                    <option value="0">Fără sos</option>
+                                    <option value="5">Ketchup (+5 lei)</option>
+                                    <option value="7">Maioneză (+7 lei)</option>
+                                    <option value="10">Sos Barbeque (+10 lei)</option>
+                                </select>
+                            </div>
+                            <div class="option">
+                                <label for="bautura-burger">Alege băutură:</label>
+                                <select id="bautura-burger">
+                                    <option value="0">Fără băutură</option>
+                                    <option value="4">Cola (+4 lei)</option>
+                                    <option value="3">Apă plată (+3 lei)</option>
+                                    <option value="6">Suc natural (+6 lei)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="adaugaInCos('Burger')">Adaugă în Coș</button>
+                    </div>
+                </div>
+
+                <div class="menu-card">
+                    <img src="pizza.jpg" alt="Pizza">
+                    <div class="menu-info">
+                        <h2>Pizza Quattro Stagioni</h2>
+                        <p>Aluat, sos de roșii, mozzarella, ciuperci, șuncă, măsline, articoke</p>
+                        <p class="price">Preț: 35 lei</p>
+                        <div class="options">
+                            <div class="option">
+                                <label for="sos-pizza">Alege sos:</label>
+                                <select id="sos-pizza">
+                                    <option value="0">Fără sos</option>
+                                    <option value="5">Ulei de măsline (+5 lei)</option>
+                                    <option value="7">Sos Roquefort (+7 lei)</option>
+                                    <option value="10">Sos Pesto (+10 lei)</option>
+                                </select>
+                            </div>
+                            <div class="option">
+                                <label for="bautura-pizza">Alege băutură:</label>
+                                <select id="bautura-pizza">
+                                    <option value="0">Fără băutură</option>
+                                    <option value="4">Cola (+4 lei)</option>
+                                    <option value="3">Apă plată (+3 lei)</option>
+                                    <option value="6">Suc natural (+6 lei)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="adaugaInCos('Pizza')">Adaugă în Coș</button>
+                    </div>
+                </div>
+
+                <div class="menu-card">
+                    <img src="salata.jpg" alt="Salată">
+                    <div class="menu-info">
+                        <h2>Salată Cezar</h2>
+                        <p>Salată verde, piept de pui la grătar, crutoane, parmezan, dressing</p>
+                        <p class="price">Preț: 20 lei</p>
+                        <div class="options">
+                            <div class="option">
+                                <label for="sos-salata">Alege sos:</label>
+                                <select id="sos-salata">
+                                    <option value="0">Fără sos</option>
+                                    <option value="3">Dressing Caesar (+3 lei)</option>
+                                    <option value="5">Sos Balsamic (+5 lei)</option>
+                                    <option value="8">Sos Tahini (+8 lei)</option>
+                                </select>
+                            </div>
+                            <div class="option">
+                                <label for="bautura-salata">Alege băutură:</label>
+                                <select id="bautura-salata">
+                                    <option value="0">Fără băutură</option>
+                                    <option value="4">Cola (+4 lei)</option>
+                                    <option value="3">Apă plată (+3 lei)</option>
+                                    <option value="6">Suc natural (+6 lei)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="adaugaInCos('Salată')">Adaugă în Coș</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="cart-container">
+        <h2>Coșul de cumpărături</h2>
+        <div class="cart-items"></div>
+        <div class="cart-total">Total: <span id="cart-total-price">0</span> lei</div>
+        <button class="cart-plaseazacomanda" onclick="placeOrder()">Plasează comanda</button>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Restaurant 1. Toate drepturile rezervate.</p>
+            <div class="footer-links">
+                <a href="#">Despre Noi</a>
+                <a href="#">Termeni și Condiții</a>
+                <a href="#">Politica de Confidențialitate</a>
+                <a href="#">Contact</a>
+            </div>
+        </div>
+    </footer>
+
+    

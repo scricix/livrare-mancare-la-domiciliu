@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="cms.js"></script>
+    <script src="site.js"></script>
+    <title>Gestionare Restaurante, Meniuri și Livratori</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+        .section {
+            background-color: #fff;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 45%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        input, select, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            background-color: #f9f9f9;
+            margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .delete-btn, .edit-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .edit-btn {
+            background-color: #2196F3;
+        }
+        #searchInput {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        .block-btn, .pause-btn {
+            background-color: #FF9800;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .blocked {
+            background-color: #f44336;
+        }
+        .paused {
+            background-color: #FFC107;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gestionare Restaurante, Meniuri și Livratori</h1>
+    <input type="text" id="searchInput" placeholder="Caută...">
+    <div class="container">
+        <div class="section">
+            <h2>Restaurante</h2>
+            <input type="text" id="restaurantName" placeholder="Nume restaurant">
+            <input type="text" id="restaurantAddress" placeholder="Adresă restaurant">
+            <button onclick="addRestaurant()">Adaugă Restaurant</button>
+            <ul id="restaurantList"></ul>
+        </div>
+        <div class="section">
+            <h2>Meniuri</h2>
+            <select id="menuRestaurant"></select>
+            <input type="text" id="menuItem" placeholder="Element meniu">
+            <input type="number" id="menuPrice" placeholder="Preț">
+            <button onclick="addMenuItem()">Adaugă Element Meniu</button>
+            <ul id="menuList"></ul>
+        </div>
+        <div class="section">
+            <h2>Livratori</h2>
+            <input type="text" id="deliveryPerson" placeholder="Nume livrator">
+            <button onclick="addDeliveryPerson()">Adaugă Livrator</button>
+            <ul id="deliveryPersonList"></ul>
+        </div>
+        <div class="section">
+            <h2>Comenzi</h2>
+            <select id="orderRestaurant"></select>
+            <select id="orderDeliveryPerson"></select>
+            <input type="text" id="orderDetails" placeholder="Detalii comandă">
+            <button onclick="addOrder()">Adaugă Comandă</button>
+            <ul id="orderList"></ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Livratori</h2>
+        <input type="text" id="deliveryPerson" placeholder="Nume livrator">
+        <button onclick="addDeliveryPerson()">Adaugă Livrator</button>
+        <ul id="deliveryPersonList"></ul>
+    </div>
+
+    <script>
+        let restaurants = [];
+        let menus = {};
+        let deliveryPersons = [];
+        let orders = [];
+
+        // Load data from localStorage
+        function loadData() {
+            restaurants = JSON.parse(localStorage.getItem('restaurants')) || [];
+            menus = JSON.parse(localStorage.getItem('menus')) || {};
+            deliveryPersons = JSON.parse(localStorage.getItem('deliveryPersons')) || [];
+            orders = JSON.parse(localStorage.getItem('orders')) || [];
+            updateAllLists();
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('restaurants', JSON.stringify(restaurants));
+            localStorage.setItem('menus', JSON.stringify(menus));
+            localStorage.setItem('deliveryPersons', JSON.stringify(deliveryPersons));
+            localStorage.setItem('orders', JSON.stringify(orders));
+        }
+
+        function addRestaurant() {
+            const name = document.getElementById('restaurantName').value.trim();
+            const address = document.getElementById('restaurantAddress').value.trim();
+            if (name && address) {
+                restaurants.push({name, address});
+                updateRestaurantList();
+                updateRestaurantDropdowns();
+                document.getElementById('restaurantName').value = '';
+                document.getElementById('restaurantAddress').value = '';
+                saveData();
+            } else {
+                alert('Vă rugăm să completați toate câmpurile pentru restaurant.');
+            }
+        }
+
+        function updateRestaurantList() {
+            const list = document.getElementById('restaurantList');
+            list.innerHTML = '';
+            restaurants.forEach((restaurant, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    ${restaurant.name} - ${restaurant.address}
+                    <div>
+                        <button class="edit-btn" onclick="editRestaurant(${index})">Editează</button>
+                        <button class="delete-btn" onclick="deleteRestaurant(${index})">Șterge</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function editRestaurant(index) {
+            const restaurant = restaurants[index];
+            const newName = prompt('Introduceți noul nume al restaurantului:', restaurant.name);
+            const newAddress = prompt('Introduceți noua adresă a restaurantului:', restaurant.address);
+            if (newName && newAddress) {
+                restaurant.name = newName.trim();
+                restaurant.address = newAddress.trim();
+                updateRestaurantList();
+                updateRestaurantDropdowns();
+                saveData();
+            }
+        }
+
+        function deleteRestaurant(index) {
+            if (confirm('Sunteți sigur că doriți să ștergeți acest restaurant?')) {
+                restaurants.splice(index, 1);
+                delete menus[restaurants[index].name];
+                updateRestaurantList();
+                updateRestaurantDropdowns();
+                updateMenuList();
+                saveData();
+            }
+        }
+
+        function updateRestaurantDropdowns() {
+            const menuRestaurant = document.getElementById('menuRestaurant');
+            const orderRestaurant = document.getElementById('orderRestaurant');
+            menuRestaurant.innerHTML = '';
+            orderRestaurant.innerHTML = '';
+            restaurants.forEach(restaurant => {
+                const option = document.createElement('option');
+                option.value = restaurant.name;
+                option.textContent = restaurant.name;
+                menuRestaurant.appendChild(option.cloneNode(true));
+                orderRestaurant.appendChild(option);
+            });
+        }
+
+        function addMenuItem() {
+            const restaurant = document.getElementById('menuRestaurant').value;
+            const item = document.getElementById('menuItem').value.trim();
+            const price = document.getElementById('menuPrice').value;
+            if (restaurant && item && price) {
+                if (!menus[restaurant]) {
+                    menus[restaurant] = [];
+                }
+                menus[restaurant].push({item, price});
+                updateMenuList();
+                document.getElementById('menuItem').value = '';
+                document.getElementById('menuPrice').value = '';
+                saveData();
+            } else {
+                alert('Vă rugăm să completați toate câmpurile pentru meniu.');
+            }
+        }
+
+        function updateMenuList() {
+            const list = document.getElementById('menuList');
+            list.innerHTML = '';
+            for (const [restaurant, items] of Object.entries(menus)) {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>${restaurant}:</strong>`;
+                const itemList = document.createElement('ul');
+                items.forEach((item, index) => {
+                    const itemLi = document.createElement('li');
+                    itemLi.innerHTML = `
+                        ${item.item} - ${item.price} lei
+                        <div>
+                            <button class="edit-btn" onclick="editMenuItem('${restaurant}', ${index})">Editează</button>
+                            <button class="delete-btn" onclick="deleteMenuItem('${restaurant}', ${index})">Șterge</button>
+                        </div>
+                    `;
+                    itemList.appendChild(itemLi);
+                });
+                li.appendChild(itemList);
+                list.appendChild(li);
+            }
+        }
+
+        function editMenuItem(restaurant, index) {
+            const item = menus[restaurant][index];
+            const newItem = prompt('Introduceți noul nume al elementului din meniu:', item.item);
+            const newPrice = prompt('Introduceți noul preț al elementului din meniu:', item.price);
+            if (newItem && newPrice) {
+                item.item = newItem.trim();
+                item.price = newPrice.trim();
+                updateMenuList();
+                saveData();
+            }
+        }
+
+        function deleteMenuItem(restaurant, index) {
+            if (confirm('Sunteți sigur că doriți să ștergeți acest element din meniu?')) {
+                menus[restaurant].splice(index, 1);
+                if (menus[restaurant].length === 0) {
+                    delete menus[restaurant];
+                }
+                updateMenuList();
+                saveData();
+            }
+        }
+
+        function addDeliveryPerson() {
+            const name = document.getElementById('deliveryPerson').value.trim();
+            if (name) {
+                deliveryPersons.push(name);
+                updateDeliveryPersonList();
+                updateDeliveryPersonDropdown();
+                document.getElementById('deliveryPerson').value = '';
+                saveData();
+            } else {
+                alert('Vă rugăm să introduceți numele livratorului.');
+            }
+        }
+
+        function updateDeliveryPersonList() {
+            const list = document.getElementById('deliveryPersonList');
+            list.innerHTML = '';
+            deliveryPersons.forEach((person, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    ${person}
+                    <div>
+                        <button class="edit-btn" onclick="editDeliveryPerson(${index})">Editează</button>
+                        <button class="delete-btn" onclick="deleteDeliveryPerson(${index})">Șterge</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function editDeliveryPerson(index) {
+            const newName = prompt('Introduceți noul nume al livratorului:', deliveryPersons[index]);
+            if (newName) {
+                deliveryPersons[index] = newName.trim();
+                updateDeliveryPersonList();
+                updateDeliveryPersonDropdown();
+                saveData();
+            }
+        }
+
+        function deleteDeliveryPerson(index) {
+            if (confirm('Sunteți sigur că doriți să ștergeți acest livrator?')) {
+                deliveryPersons.splice(index, 1);
+                updateDeliveryPersonList();
+                updateDeliveryPersonDropdown();
+                saveData();
+            }
+        }
+
+        function updateDeliveryPersonDropdown() {
+            const orderDeliveryPerson = document.getElementById('orderDeliveryPerson');
+            orderDeliveryPerson.innerHTML = '';
+            deliveryPersons.forEach(person => {
+                const option = document.createElement('option');
+                option.value = person;
+                option.textContent = person;
+                orderDeliveryPerson.appendChild(option);
+            });
+        }
+
+        function addOrder() {
+            const restaurant = document.getElementById('orderRestaurant').value;
+            const deliveryPerson = document.getElementById('orderDeliveryPerson').value;
+            const details = document.getElementById('orderDetails').value.trim();
+            if (restaurant && deliveryPerson && details) {
+                orders.push({restaurant, deliveryPerson, details, date: new Date().toLocaleString()});
+                updateOrderList();
+                document.getElementById('orderDetails').value = '';
+                saveData();
+            } else {
+                alert('Vă rugăm să completați toate câmpurile pentru comandă.');
+            }
+        }
+
+        function updateOrderList() {
+            const list = document.getElementById('orderList');
+            list.innerHTML = '';
+            orders.forEach((order, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <strong>${order.restaurant}</strong> - ${order.deliveryPerson}<br>
+                    ${order.details}<br>
+                    <small>${order.date}</small>
+                    <div>
+                        <button class="delete-btn" onclick="deleteOrder(${index})">Șterge</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function deleteOrder(index) {
+            if (confirm('Sunteți sigur că doriți să ștergeți această comandă?')) {
+                orders.splice(index, 1);
+                updateOrderList();
+                saveData();
+            }
+        }
+
+        function updateAllLists() {
+            updateRestaurantList();
+            updateMenuList();
+            updateDeliveryPersonList();
+            updateOrderList();
+            updateRestaurantDropdowns();
+            updateDeliveryPersonDropdown();
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const allItems = document.querySelectorAll('li');
+            allItems.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Load data when the page loads
+        window.onload = loadData;
+        function addDeliveryPerson() {
+            const name = document.getElementById('deliveryPerson').value.trim();
+            if (name) {
+                deliveryPersons.push({name: name, blocked: false, paused: false});
+                updateDeliveryPersonList();
+                updateDeliveryPersonDropdown();
+                document.getElementById('deliveryPerson').value = '';
+                saveData();
+            } else {
+                alert('Vă rugăm să introduceți numele livratorului.');
+            }
+        }
+
+        function updateDeliveryPersonList() {
+            const list = document.getElementById('deliveryPersonList');
+            list.innerHTML = '';
+            deliveryPersons.forEach((person, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    ${person.name}
+                    <div>
+                        <button class="edit-btn" onclick="editDeliveryPerson(${index})">Editează</button>
+                        <button class="delete-btn" onclick="deleteDeliveryPerson(${index})">Șterge</button>
+                        <button class="block-btn ${person.blocked ? 'blocked' : ''}" onclick="toggleBlockDeliveryPerson(${index})">
+                            ${person.blocked ? 'Deblochează' : 'Blochează'}
+                        </button>
+                        <button class="pause-btn ${person.paused ? 'paused' : ''}" onclick="togglePauseDeliveryPerson(${index})">
+                            ${person.paused ? 'Reactivează' : 'Pauză'}
+                        </button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function editDeliveryPerson(index) {
+            const newName = prompt('Introduceți noul nume al livratorului:', deliveryPersons[index].name);
+            if (newName) {
+                deliveryPersons[index].name = newName.trim();
+                updateDeliveryPersonList();
+                updateDeliveryPersonDropdown();
+                saveData();
+            }
+        }
+
+        function deleteDeliveryPerson(index) {
+            if (confirm('Sunteți sigur că doriți să ștergeți acest livrator?')) {
+                deliveryPersons.splice(index, 1);
+                updateDeliveryPersonList();
+                updateDeliveryPersonDropdown();
+                saveData();
+            }
+        }
+
+        function toggleBlockDeliveryPerson(index) {
+            deliveryPersons[index].blocked = !deliveryPersons[index].blocked;
+            if (deliveryPersons[index].blocked) {
+                deliveryPersons[index].paused = false; // Dacă e blocat, nu poate fi în pauză
+            }
+            updateDeliveryPersonList();
+            updateDeliveryPersonDropdown();
+            saveData();
+        }
+
+        function togglePauseDeliveryPerson(index) {
+            if (!deliveryPersons[index].blocked) {
+                deliveryPersons[index].paused = !deliveryPersons[index].paused;
+                updateDeliveryPersonList();
+                updateDeliveryPersonDropdown();
+                saveData();
+            } else {
+                alert('Nu puteți pune în pauză un livrator blocat.');
+            }
+        }
+
+        function updateDeliveryPersonDropdown() {
+            const orderDeliveryPerson = document.getElementById('orderDeliveryPerson');
+            orderDeliveryPerson.innerHTML = '';
+            deliveryPersons.forEach(person => {
+                if (!person.blocked && !person.paused) {
+                    const option = document.createElement('option');
+                    option.value = person.name;
+                    option.textContent = person.name;
+                    orderDeliveryPerson.appendChild(option);
+                }
+            });
+        }
+
+
+
+
+        async function addRestaurant() {
+    const name = document.getElementById('restaurantName').value.trim();
+    const address = document.getElementById('restaurantAddress').value.trim();
+    if (name && address) {
+        await cmsAPI.addRestaurant(name, address);
+        await updateRestaurantList();
+        await updateRestaurantDropdowns();
+        document.getElementById('restaurantName').value = '';
+        document.getElementById('restaurantAddress').value = '';
+    } else {
+        alert('Vă rugăm să completați toate câmpurile pentru restaurant.');
+    }
+}
+
+async function updateRestaurantList() {
+    const restaurants = await cmsAPI.getRestaurants();
+    const list = document.getElementById('restaurantList');
+    list.innerHTML = '';
+    restaurants.forEach((restaurant, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            ${restaurant.name} - ${restaurant.address}
+            <div>
+                <button class="edit-btn" onclick="editRestaurant(${restaurant.id})">Editează</button>
+                <button class="delete-btn" onclick="deleteRestaurant(${restaurant.id})">Șterge</button>
+            </div>
+        `;
+        list.appendChild(li);
+    });
+}
+
+    </script>
+</body>
+</html>
